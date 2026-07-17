@@ -12,6 +12,9 @@ import com.sisonke.taskflow.dto.request.RegisterRequest;
 import com.sisonke.taskflow.dto.response.RegisterResponse;
 import com.sisonke.taskflow.service.UserService;
 
+import com.sisonke.taskflow.dto.request.LoginRequest;
+import com.sisonke.taskflow.dto.response.LoginResponse;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -32,5 +35,13 @@ public class UserController {
         RegisterResponse response = userService.registerUser(request);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> loginUser(
+        @Valid @RequestBody LoginRequest request) {
+
+        LoginResponse response = userService.loginUser(request);
+
+        return ResponseEntity.ok(response);
     }
 }

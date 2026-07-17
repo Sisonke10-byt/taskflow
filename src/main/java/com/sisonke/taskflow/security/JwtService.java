@@ -3,11 +3,14 @@ package com.sisonke.taskflow.security;
 import java.security.Key;
 import java.util.Date;
 
+import javax.crypto.SecretKey;
+
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.Claims;
 
 @Service
 public class JwtService {
@@ -28,4 +31,36 @@ public class JwtService {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    public String extractEmail(String token) {
+
+        Claims claims = Jwts.parser()
+            .verifyWith((SecretKey) getSigningKey())
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+
+        return claims.getSubject();
+   }
+    public Date extractExpiration(String token) {
+
+        Claims claims = Jwts.parser()
+            .verifyWith((SecretKey) getSigningKey())
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+
+        return claims.getExpiration();
+    }
+    private boolean isTokenExpired(String token) {
+    return extractExpiration(token).before(new Date());
+}
+
+public boolean validateToken(String token, String email) {
+
+    final String extractedEmail = extractEmail(token);
+
+    return extractedEmail.equals(email)
+            && !isTokenExpired(token);
+}
 }

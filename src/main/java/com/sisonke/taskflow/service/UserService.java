@@ -11,17 +11,25 @@ import com.sisonke.taskflow.entity.Role;
 import com.sisonke.taskflow.entity.User;
 import com.sisonke.taskflow.repository.UserRepository;
 
+import com.sisonke.taskflow.dto.request.LoginRequest;
+import com.sisonke.taskflow.dto.response.LoginResponse;
+import com.sisonke.taskflow.security.JwtService;
+
+
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public RegisterResponse registerUser(RegisterRequest request) {
@@ -50,6 +58,26 @@ public class UserService {
         .role(savedUser.getRole())
         .createdAt(savedUser.getCreatedAt())
         .build();
+    }
+
+        public LoginResponse loginUser(LoginRequest request) {
+
+        // Step 1: Find the user by email
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        // Step 2: Check the password
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        // Step 3: Generate a JWT
+        String token = jwtService.generateToken(user.getEmail());
+
+        // Step 4: Return the token
+        return LoginResponse.builder()
+                .token(token)
+                .build();   
     }
 
 }
