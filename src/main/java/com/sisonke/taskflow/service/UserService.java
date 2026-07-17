@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.sisonke.taskflow.dto.RegisterRequest;
+import com.sisonke.taskflow.dto.request.RegisterRequest;
+import com.sisonke.taskflow.dto.response.RegisterResponse;
 import com.sisonke.taskflow.entity.Role;
 import com.sisonke.taskflow.entity.User;
 import com.sisonke.taskflow.repository.UserRepository;
@@ -23,7 +24,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User registerUser(RegisterRequest request) {
+    public RegisterResponse registerUser(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists.");
@@ -38,7 +39,17 @@ public class UserService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return userRepository.save(user);
+    
+        User savedUser = userRepository.save(user);
+
+        return RegisterResponse.builder()
+        .id(savedUser.getId())
+        .firstName(savedUser.getFirstName())
+        .lastName(savedUser.getLastName())
+        .email(savedUser.getEmail())
+        .role(savedUser.getRole())
+        .createdAt(savedUser.getCreatedAt())
+        .build();
     }
 
 }

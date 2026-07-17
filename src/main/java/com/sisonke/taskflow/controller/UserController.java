@@ -3,10 +3,13 @@ package com.sisonke.taskflow.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.sisonke.taskflow.dto.RegisterRequest;
-import com.sisonke.taskflow.entity.User;
+import com.sisonke.taskflow.dto.request.RegisterRequest;
+import com.sisonke.taskflow.dto.response.RegisterResponse;
 import com.sisonke.taskflow.service.UserService;
 
 import jakarta.validation.Valid;
@@ -23,10 +26,11 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<RegisterResponse> registerUser(
+            @Valid @RequestBody RegisterRequest request) {
 
-        User savedUser = userService.registerUser(request);
+        RegisterResponse response = userService.registerUser(request);
 
-        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }
