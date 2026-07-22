@@ -3,13 +3,13 @@ package com.sisonke.taskflow.security;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.sisonke.taskflow.repository.UserRepository;
 import com.sisonke.taskflow.entity.User;
+import com.sisonke.taskflow.repository.UserRepository;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -39,6 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
+        System.out.println("Authorization Header: " + authHeader);
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -46,27 +48,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String jwt = authHeader.substring(7);
 
-        String email = jwtService.extractEmail(jwt);
+        try {
 
-        System.out.println("Email from JWT: " + email);
+            String email = jwtService.extractEmail(jwt);
 
-        User user = userRepository.findByEmail(email)
-        .orElse(null);
+            System.out.println("Email from JWT: " + email);
 
-        if (user != null && jwtService.validateToken(jwt, email)) {
+            if (SecurityContextHolder.getContext()
+                    .getAuthentication() == null) {
 
-    UsernamePasswordAuthenticationToken authentication =
-            new UsernamePasswordAuthenticationToken(
-                    user,
-                    null,
-                    Collections.emptyList()
+                User user = userRepository.findByEmail(email)
+                        .orElse(null);
+
+                if (user != null && jwtService.validateToken(jwt, email)) {
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    email,
+                                    null,
+                                    Collections.emptyList()
+                            );
+
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(authentication);
+
+                    System.out.println(
+                            "User authenticated: " + email
+                    );
+                }
+            }
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "JWT authentication failed: "
+                    + e.getMessage()
             );
-
-    SecurityContextHolder.getContext()
-            .setAuthentication(authentication);
-
-    System.out.println("User authenticated: " + email);
-}
+        }
 
         filterChain.doFilter(request, response);
     }
